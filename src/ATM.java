@@ -14,7 +14,7 @@ public class ATM {
         validSession = false;
         userPIN = 0;
         userBalance = 0;
-        currentBinAmount = getCurrentBinAmount();
+        currentBinAmount = initBinAmount();
         bankConnection = null;
     }
 
@@ -44,25 +44,12 @@ public class ATM {
             // get account balance from bank
             if (verify()) {
                 // return info from bank
-                return 1;
+                return 400;
             }
             return -1;
         }
 
-        public boolean requestDeposit() {
-            // ask for deposit from bank, return success/failure
-            return true;
-        }
-
-        public boolean deposit(int deposited) {
-            if (verify()) {
-                return sendDeposit(PIN, cardInfo, deposited);
-            } else {
-                return false;
-            }
-        }
-
-        private boolean sendDeposit(int PIN, double cardInfo, int deposit) {
+        public boolean sendDeposit(int deposit) {
             // actually send updated balance to bank
             if (verify()) {
                 // send desposit to bank, get success/fail
@@ -87,9 +74,13 @@ public class ATM {
     }
 
 
-    private int getCurrentBinAmount() {
+    private int initBinAmount() {
         // interface with cash bin to obtain current amount of money in ATM bin
         return 100;
+    }
+
+    public int getBinAmount() {
+        return currentBinAmount;
     }
 
     private void openCashDoor() {
@@ -101,28 +92,31 @@ public class ATM {
     }
 
     private void dispenseMoney(int amount) {
-        // use cash bin hardward to dispense money
+        // use cash bin hardware to dispense money
         currentBinAmount = currentBinAmount - amount;
     }
 
-    private boolean getDeposit() {
+    public boolean getDeposit(int deposited) {
+        if (!validSession) {
+            System.out.println("Invalid session.");
+            return false;
+        }
         openCashDoor();
-        int deposited = 0;
+//        int deposited = 0;
         // use some sort of sensor to determine amount of money added
         // add this to the current amount of money in the cash bin
-        deposited = 100;
         this.currentBinAmount += deposited;
         closeCashDoor();
-        return (bankConnection.deposit(deposited));
+        return (bankConnection.sendDeposit(deposited));
     }
 
-    private void verifyInfo(int userPIN, double userCardInfo) {
+    public void verifyInfo() {
         // connect to bank and verify given information
         bankConnection = new BankConnection(userPIN, userCardInfo);
         validSession = bankConnection.verify();
     }
 
-    private void cardIntake() {
+    public void cardIntake() {
         // open card slot, turn on lights, etc
         cardInserted = cardSensor();
         if (cardInserted) {
@@ -132,7 +126,7 @@ public class ATM {
 
     private double readCard() {
         // read card that has been given
-        return 0;
+        return 1;
     }
 
     private boolean cardSensor() {
@@ -141,29 +135,40 @@ public class ATM {
         return true;
     }
 
-    private void getPINinput() {
+    public void getPINinput(int userPIN) {
         // could use a Scanner or something for now
-        Scanner input = new Scanner(System.in);
-        System.out.println("Please input your PIN");
-        userPIN = input.nextInt();
-        while (userPIN < 0) {
+//        Scanner input = new Scanner(System.in);
+//        System.out.println("Please input your PIN");
+//        userPIN = input.nextInt();
+//        while (userPIN < 0) {
+//            System.out.println("Invalid input. Please try again.");
+//            userPIN = input.nextInt();
+//        }
+        if (userPIN < 0) {
             System.out.println("Invalid input. Please try again.");
-            userPIN = input.nextInt();
+        } else {
+            this.userPIN = userPIN;
         }
     }
 
-    private boolean getWithdrawal() {
-        Scanner input = new Scanner(System.in);
-        System.out.println("Please input the amount you would like to withdraw");
-        int userWithdraw = input.nextInt();
-        while (userWithdraw < 0 || userWithdraw > currentBinAmount) {
+    public boolean getWithdrawal(int userWithdraw) {
+//        Scanner input = new Scanner(System.in);
+//        System.out.println("Please input the amount you would like to withdraw");
+//        int userWithdraw = input.nextInt();
+//        while (userWithdraw < 0 || userWithdraw > currentBinAmount) {
+        if (!validSession) {
+            System.out.println("Invalid session.");
+            return false;
+        }
             if (userWithdraw < 0) {
                 System.out.println("Invalid input. Please try again.");
-            } else {
+                return false;
+            } else if (userWithdraw > currentBinAmount){
                 System.out.println("Unable to fulfill request. Please try again.");
+                return false;
             }
-            userWithdraw = input.nextInt();
-        }
+//            userWithdraw = input.nextInt();
+//        }
         if (bankConnection.requestWithdrawal(userWithdraw)) {
             openCashDoor();
             dispenseMoney(userWithdraw);
@@ -176,18 +181,34 @@ public class ATM {
 
     }
 
-    private void getBalance() {
+    public boolean getBalance() {
+        if (!validSession) {
+            System.out.println("Invalid session.");
+            return false;
+        }
         int result = bankConnection.getBalance();
         if (result == -1) {
             System.out.println("Verification failed");
+            return false;
         } else {
             System.out.println("Printing balance");
             // print the balance on paper
+            return true;
         }
+    }
+
+    public void giveBackCard() {
+        // use motors, give ard back to user
+        validSession = false;
+        userPIN = -1;
+        userCardInfo = -1;
     }
 
     public static void main(String[] args) {
         // ask for card -> call cardIntake()
+
+        // during entire operation, should be checking for timeout -> invalidate session and give back card
+
         // once card inserted, ask for PIN -> call getPINinput()
         // verify info with bank -> call verifyInfo
         // check validSession = true before continuing
@@ -196,5 +217,6 @@ public class ATM {
         // if deposit, no need to verify -> call getDeposit()
         // if balance, ask for info from bank and print results -> call getBalance()
         // if withdraw, ask how much -> call getWithdrawal()
+        // at any point, give back card if desired
     }
 }
