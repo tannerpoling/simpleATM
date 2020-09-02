@@ -1,0 +1,16 @@
+Notes:
+- account balance can be represented with integer
+- would want to integrate with real system: security needed
+- testing controller is within scope of project
+- would want to integrate with real cash bin in future
+- need to send PIN input, withdrawal request to bank for approval
+  - not sure how to secure that request on my end
+
+
+
+
+
+
+Assumption:
+- user will be unable to grab their card once inserted
+-
