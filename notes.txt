@@ -2,9 +2,14 @@ Notes:
 - account balance can be represented with integer
 - would want to integrate with real system: security needed
 - testing controller is within scope of project
+  - making sure cant withdraw during invalid session
+  - session timeout
+  - make sure can't withdraw more than what is available
+  - make sure user can't input strange values to mess up machine
 - would want to integrate with real cash bin in future
-- need to send PIN input, withdrawal request to bank for approval
+- need to send PIN input, withdrawal request to bank for approval/verification
   - not sure how to secure that request on my end
+- would want some way to interrupt the session, declare it invalid
 
 
 
